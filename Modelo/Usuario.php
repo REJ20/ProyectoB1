@@ -9,21 +9,21 @@
 		
 		private $id;
 		private $nombreUsuario;
-		private $pass;
-		private $nivel;
+		private $password;
+        private $nivel;
 		private $email;
 		private $fechaRegistro;
 		private $fechaModificacion;
 		private $estado;
 
 
-		function __construct($user=null,$pass=null,$nivel=null,$email=null,$fechaR=null,$fechaM=null,$estado=null,$id=null)
+		function __construct($user=null,$password=null,$nivel=null,$email=null,$fechaR=null,$fechaM=null,$estado=null,$id=null)
 		{
 			parent::__construct();
 
 			$this->id=$id;
 			$this->nombreUsuario=$user;
-			$this->pass=sha1($pass);
+			$this->pass=sha1($password);
 			$this->nivel=$nivel;
 			$this->email=$email;
 			$this->fechaRegistro=$fechaR;
@@ -33,66 +33,7 @@
 
 
 // SETTER Y GETTERS
-		public function getNombreUsuario()
-		{
-			return $this->nombreUsuario;
-		}
-
-		public function setNombreUsuario($value)
-		{
-			$this->nombreUsuario = $value;
-		}
-
-		public function getPass()
-		{
-			return $this->pass;
-		}
-
-		public function setPass($value)
-		{
-			$this->pass = $value;
-		}
-
-		public function getNivel()
-		{
-			return $this->nivel;
-		}
-
-		public function setNivel($value)
-		{
-			$this->nivel = $value;
-		}
-
-		public function getFechaRegistro()
-		{
-			return $this->fechaRegistro;
-		}
-
-		public function setFechaRegistro($value)
-		{
-			$this->fechaRegistro = $value;
-		}
-
-		public function getFechaModificacion()
-		{
-			return $this->fechaModificacion;
-		}
-
-		public function setFechaModificacion($value)
-		{
-			$this->fechaModificacion = $value;
-		}
-
-		public function getEstado()
-		{
-			return $this->estado;
-		}
-
-		public function setEstado($value)
-		{
-			$this->estado=$value;
-		}
-
+		
 // OTRAS FUNCIONES
 		// INICIAR SESION
 		public function login()
@@ -103,14 +44,14 @@
 				$resultado=0;
 			}else{
 
-				$resultado = mysqli_query($con,"SELECT * FROM usuario WHERE nombreUsuario='".$this->nombreUsuario."' and pass='".$this->pass."' and estado=1");
+				$resultado = mysqli_query($con,"SELECT * FROM usuario WHERE nombreUsuario='".$this->nombreUsuario."' and password='".$this->password."' and estado=1");
 				if($resultado->num_rows>0){
 
 					//USUARIO ENCONTRADO
 					$datos=$resultado->fetch_assoc();
 
 					session_start();
-					$_SESSION['idUser']=$datos['id'];
+					$_SESSION['idUsuario']=$datos['id'];
 					$_SESSION['nombre']=$datos['nombreUsuario'];
 
 					switch ($datos['nivel']) {
@@ -141,8 +82,6 @@
 		// INSERTAR USUARIO
 		public function insertar()
 		{
-			// EJEMPLO
-			// $user = new Usuario('rafa','1234',2,date('y/m/d h:i:s'));
 
 			// ABRIR CONEXION
 			$con=$this->conectar();
