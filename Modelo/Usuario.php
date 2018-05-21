@@ -23,7 +23,7 @@
 
 			$this->id=$id;
 			$this->nombreUsuario=$user;
-			$this->pass=sha1($password);
+			$this->pass=$password;
 			$this->nivel=$nivel;
 			$this->email=$email;
 			$this->fechaRegistro=$fechaR;
@@ -44,7 +44,8 @@
 				$resultado=0;
 			}else{
 
-				$resultado = mysqli_query($con,"SELECT * FROM usuario WHERE nombreUsuario='".$this->nombreUsuario."' and password='".$this->password."' and estado=1");
+				$resultado = mysqli_query($con,"SELECT * FROM usuario WHERE nombreUsuario='".$this->nombreUsuario."' and pass='".$this->password."' and estado=1");
+                
 				if($resultado->num_rows>0){
 
 					//USUARIO ENCONTRADO
