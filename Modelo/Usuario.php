@@ -1,194 +1,235 @@
 <?php 
+	require_once 'Conexion.php';
 
-	require_once("Conexion.php");
-
+	/**
+	* Clase usuario
+	*/
 	class Usuario extends Conexion
 	{
-
-		private $nombre;
-		private $apellido;
-		private $celular1;
-		private $celular2;
-		private $rubro;
-		private $rol;
-		private $username;
-		private $password;
 		
-		function __construct($nombre=null, $apellido=null, $celular1=null, $celular2=null, $rubro=null, $rol=null, $username=null, $password=null)
-		{
+		private $id;
+		private $nombreUsuario;
+		private $pass;
+		private $nivel;
+		private $email;
+		private $fechaRegistro;
+		private $fechaModificacion;
+		private $estado;
 
-			parent:: __construct();
-			$this->nombre= $nombre;
-			$this->apellido= $apellido;
-			$this->celular1 = $celular1;
-			$this->celular2 = $celular2;
-			$this->rubro = $rubro;
-			$this->rol = $rol;
-			$this->username= $username;
-			$this->password= sha1($password);
-			
+
+		function __construct($user=null,$pass=null,$nivel=null,$email=null,$fechaR=null,$fechaM=null,$estado=null,$id=null)
+		{
+			parent::__construct();
+
+			$this->id=$id;
+			$this->nombreUsuario=$user;
+			$this->pass=sha1($pass);
+			$this->nivel=$nivel;
+			$this->email=$email;
+			$this->fechaRegistro=$fechaR;
+			$this->fechaModificacion=$fechaM;
+			$this->estado=$estado;
+		}
+
+
+// SETTER Y GETTERS
+		public function getNombreUsuario()
+		{
+			return $this->nombreUsuario;
+		}
+
+		public function setNombreUsuario($value)
+		{
+			$this->nombreUsuario = $value;
+		}
+
+		public function getPass()
+		{
+			return $this->pass;
+		}
+
+		public function setPass($value)
+		{
+			$this->pass = $value;
+		}
+
+		public function getNivel()
+		{
+			return $this->nivel;
+		}
+
+		public function setNivel($value)
+		{
+			$this->nivel = $value;
+		}
+
+		public function getFechaRegistro()
+		{
+			return $this->fechaRegistro;
+		}
+
+		public function setFechaRegistro($value)
+		{
+			$this->fechaRegistro = $value;
+		}
+
+		public function getFechaModificacion()
+		{
+			return $this->fechaModificacion;
+		}
+
+		public function setFechaModificacion($value)
+		{
+			$this->fechaModificacion = $value;
+		}
+
+		public function getEstado()
+		{
+			return $this->estado;
+		}
+
+		public function setEstado($value)
+		{
+			$this->estado=$value;
+		}
+
+// OTRAS FUNCIONES
+		// INICIAR SESION
+		public function login()
+		{
+			// ABRIR CONEXION
+			$con=$this->conectar();
+			if($con=='error'){
+				$resultado=0;
+			}else{
+
+				$resultado = mysqli_query($con,"SELECT * FROM usuario WHERE nombreUsuario='".$this->nombreUsuario."' and pass='".$this->pass."' and estado=1");
+				if($resultado->num_rows>0){
+
+					//USUARIO ENCONTRADO
+					$datos=$resultado->fetch_assoc();
+
+					session_start();
+					$_SESSION['idUser']=$datos['id'];
+					$_SESSION['nombre']=$datos['nombreUsuario'];
+
+					switch ($datos['nivel']) {
+					case '1':
+						$_SESSION['rol']='Administrador';
+						break;
+					case '2':
+						$_SESSION['rol']='Usuario';
+						break;
+					case '3':
+						$_SESSION['rol']='Cliente';
+						break;
+					}
+
+					$resultado=1;
+				}else{
+					//USUARIO NO ENCONTRADO
+					$resultado=2;
+				}
+
+			}
+
+			$con->close();
+			return $resultado;
+		}
+		
+
+		// INSERTAR USUARIO
+		public function insertar()
+		{
+			// EJEMPLO
+			// $user = new Usuario('rafa','1234',2,date('y/m/d h:i:s'));
+
+			// ABRIR CONEXION
+			$con=$this->conectar();
+
+			$sentencia=$con->prepare("INSERT INTO `usuario`(`nombreUsuario`, `pass`, `nivel`, `email`, `fechaRegistro`) VALUES (?,?,?,?,?)");
+			$sentencia->bind_param('ssiss',$nombre,$pass,$nivel,$email,$fecha);
+
+			$nombre=$this->nombreUsuario;
+			$pass=$this->pass;
+			$nivel=$this->nivel;
+			$email=$this->email;
+			$fecha=$this->fechaRegistro;
+
+
+			$sentencia->execute();
+
+			if ($sentencia) {
+				return true;
+			}
+			else{
+				return false;
+			}
+
+			$sentencia->close();
+			$con->close();
 			
 		}
-	
-    /**
-     * @return mixed
-     */
-    public function getNombre()
-    {
-        return $this->nombre;
-    }
 
-    /**
-     * @param mixed $nombre
-     *
-     * @return self
-     */
-    public function setNombre($nombre)
-    {
-        $this->nombre = $nombre;
+		// mostrar
+		public function mostrar()
+		{
+			$con=$this->conectar();
 
-        return $this;
-    }
+			if ($stmt = $con->prepare("SELECT id, nombreUsuario, pass FROM usuario")) {
 
-    /**
-     * @return mixed
-     */
-    public function getApellido()
-    {
-        return $this->apellido;
-    }
+			    $stmt->execute();
 
-    /**
-     * @param mixed $apellido
-     *
-     * @return self
-     */
-    public function setApellido($apellido)
-    {
-        $this->apellido = $apellido;
+			    if(!$stmt){
+			    	echo "Fallo al mostrar datos: ".$stmt->errno;
+			    }
+			    else{
+		    		// Vinculamos variables a columnas
+			    	$stmt->bind_result($id, $nombre, $pass);
+			    	// Obtenemos los valores
+			    	while ($stmt->fetch()) {
+			        	printf($id.$nombre,$pass);
+			    	}
+			    }
 
-        return $this;
-    }
+			    // Cerramos la sentencia preparada
+			    $stmt->close();
+			}
+			$con->close();
 
-    /**
-     * @return mixed
-     */
-    public function getCelular1()
-    {
-        return $this->celular1;
-    }
+		}
 
-    /**
-     * @param mixed $celular1
-     *
-     * @return self
-     */
-    public function setCelular1($celular1)
-    {
-        $this->celular1 = $celular1;
+		public function buscarUsername()
+		{
+			$con=$this->conectar();
+			$sentencia= $con->prepare("SELECT COUNT(`nombreUsuario`) as `encontrado` FROM `usuario` WHERE `nombreUsuario`= ?");
 
-        return $this;
-    }
+			$estado;
+			if($sentencia){
+		// SENTENCIA PREPARADA CON EXITO
+				$sentencia->bind_param('s',$username);
+				$username=$this->nombreUsuario;
 
-    /**
-     * @return mixed
-     */
-    public function getCelular2()
-    {
-        return $this->celular2;
-    }
+				$sentencia->execute();
+				$sentencia->bind_result($resultado);
 
-    /**
-     * @param mixed $celular2
-     *
-     * @return self
-     */
-    public function setCelular2($celular2)
-    {
-        $this->celular2 = $celular2;
+				while ($sentencia->fetch()) {
+					if($resultado>0){
+						// 	NOMBRE DE USUARIO EXISTENTE
+						$estado=1;
+					}else{
+						$estado=0;
+					}
+				}
+			}else{
+				$estado='error';
+			}
 
-        return $this;
-    }
+			return $estado;
+			$sentencia->close();
+			$con->close();
+		}
 
-    /**
-     * @return mixed
-     */
-    public function getRubro()
-    {
-        return $this->rubro;
-    }
 
-    /**
-     * @param mixed $rubro
-     *
-     * @return self
-     */
-    public function setRubro($rubro)
-    {
-        $this->rubro = $rubro;
-
-        return $this;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getRol()
-    {
-        return $this->rol;
-    }
-
-    /**
-     * @param mixed $rol
-     *
-     * @return self
-     */
-    public function setRol($rol)
-    {
-        $this->rol = $rol;
-
-        return $this;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getUsername()
-    {
-        return $this->username;
-    }
-
-    /**
-     * @param mixed $username
-     *
-     * @return self
-     */
-    public function setUsername($username)
-    {
-        $this->username = $username;
-
-        return $this;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getPassword()
-    {
-        return $this->password;
-    }
-
-    /**
-     * @param mixed $password
-     *
-     * @return self
-     */
-    public function setPassword($password)
-    {
-        $this->password = $password;
-
-        return $this;
-    }
-}
-
- ?>
+	}
+?>
